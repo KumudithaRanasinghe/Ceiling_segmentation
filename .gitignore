@@ -1,0 +1,192 @@
+# ══════════════════════════════════════════════════════════════════════════════
+# Ceiling AI — .gitignore
+# Covers: Python, FastAPI, PyTorch, Flutter, VS Code, macOS, Linux, Docker
+# ══════════════════════════════════════════════════════════════════════════════
+
+
+# ── SECRETS & ENVIRONMENT ─────────────────────────────────────────────────────
+# Never commit real credentials, API keys, or environment values.
+# Commit .env.example (with placeholder values) instead.
+.env
+.env.*
+!.env.example          # keep the template — it's safe to commit
+
+secrets/
+*.pem
+*.key
+*.cert
+
+
+# ── MODEL WEIGHTS ─────────────────────────────────────────────────────────────
+# Binary weight files are large (100 MB – 2 GB) and change often.
+# Store them in Google Drive, S3, Hugging Face Hub, or DVC — not Git.
+models/
+*.pt
+*.pth
+*.onnx
+*.tflite
+*.bin
+*.ckpt
+*.safetensors
+
+
+# ── INFERENCE RESULTS ─────────────────────────────────────────────────────────
+# Generated mask and overlay images written by the running server.
+# Each job creates results/{job_id}/mask.png and overlay.png.
+results/
+
+
+# ── PYTHON ────────────────────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyo
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+.Python
+
+# Distribution / packaging
+dist/
+build/
+*.egg-info/
+*.egg
+MANIFEST
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Unit test / coverage
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+coverage.xml
+*.cover
+.hypothesis/
+nosetests.xml
+
+# Type checkers
+.mypy_cache/
+.dmypy.json
+dmypy.json
+.pytype/
+.pyre/
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb
+
+# pyenv
+.python-version
+
+
+# ── FASTAPI / UVICORN ─────────────────────────────────────────────────────────
+# Server PID file sometimes written to disk
+*.pid
+
+
+# ── PYTORCH / ML ──────────────────────────────────────────────────────────────
+# TensorBoard logs
+runs/
+logs/
+lightning_logs/
+wandb/
+mlruns/
+
+# Dataset directories — manage with DVC or keep outside the repo
+data/
+datasets/
+annotations/
+
+# Experiment outputs
+outputs/
+checkpoints/
+
+
+# ── DOCKER ────────────────────────────────────────────────────────────────────
+# Local override files for docker-compose
+docker-compose.override.yml
+.dockerignore   # keep the real one, ignore local overrides
+
+
+# ── FLUTTER ───────────────────────────────────────────────────────────────────
+# Build artifacts
+flutter_client/build/
+flutter_client/.dart_tool/
+flutter_client/.flutter-plugins
+flutter_client/.flutter-plugins-dependencies
+flutter_client/.packages
+flutter_client/pubspec.lock   # lock file — commit this if it's your app, not a library
+
+# Generated files
+flutter_client/*.g.dart
+flutter_client/*.freezed.dart
+
+# iOS
+flutter_client/ios/Pods/
+flutter_client/ios/.symlinks/
+flutter_client/ios/Flutter/Flutter.framework
+flutter_client/ios/Flutter/Flutter.podspec
+
+# Android
+flutter_client/android/.gradle/
+flutter_client/android/captures/
+flutter_client/android/gradlew
+flutter_client/android/gradlew.bat
+flutter_client/android/local.properties
+flutter_client/android/key.properties   # signing key config — SECRET
+
+# macOS
+flutter_client/macos/Pods/
+flutter_client/macos/.symlinks/
+
+
+# ── EDITORS ───────────────────────────────────────────────────────────────────
+# VS Code — commit .vscode/extensions.json (recommended extensions),
+#            ignore personal settings and launch configs
+.vscode/*
+!.vscode/extensions.json
+
+# JetBrains (PyCharm, IntelliJ)
+.idea/
+*.iml
+*.iws
+*.ipr
+
+# Vim / Emacs
+*.swp
+*.swo
+*~
+\#*\#
+.\#*
+
+
+# ── OPERATING SYSTEM ──────────────────────────────────────────────────────────
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+.Spotlight-V100
+.Trashes
+
+# Linux
+.directory
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+
+# ── UPLOADS (temporary) ───────────────────────────────────────────────────────
+# If you ever save incoming images to disk for debugging, exclude them.
+uploads/
+tmp/
+temp/
