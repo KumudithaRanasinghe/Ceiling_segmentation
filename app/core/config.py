@@ -20,13 +20,14 @@ class Settings(BaseSettings):
     # ── Model paths ────────────────────────────────────────────────────
     # Point both at your single model file if it does segmentation only.
     # Rename spaces to underscores: "segmentation optimized.pth" → "segmentation_optimized.pth"
+    ENCODER: str = "efficientnet-b4" # "efficientnet-b4" or "resnet50"
     DENOISER_MODEL_PATH: Optional[str] = None
     SEGMENTER_MODEL_PATH: str = "models/best_model_optimized.pth"
     DEVICE: str = "cpu"                          # "cuda" or "cpu"
 
     # ── Inference ──────────────────────────────────────────────────────
     INPUT_SIZE: int = 512                        # must match your training resolution
-    NUM_CLASSES: int = 6                         # background + number of material classes
+    NUM_CLASSES: int = 4                         # background + number of material classes
     CONFIDENCE_THRESHOLD: float = 0.5
     MIN_REGION_AREA_PX: int = 500               # ignore tiny noise regions
 

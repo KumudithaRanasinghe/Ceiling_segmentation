@@ -20,6 +20,7 @@ import logging
 import time
 from pathlib import Path
 from typing import Optional
+import segmentation_models_pytorch as smp
 
 import torch
 import torch.nn as nn
@@ -111,9 +112,13 @@ class ModelRegistry:
         state_dict = self._extract_state_dict(checkpoint, path)
 
         # ── Build architecture and load weights ───────────────────────────────
-        self._segmenter = UNet(
-            in_channels=3,
-            num_classes=settings.NUM_CLASSES,
+        self._segmenter = smp.UnetPlusPlus(
+            encoder_name        = settings.ENCODER,        # efficientnet-b4
+            encoder_weights     = None,
+            in_channels         = 3,
+            classes             = settings.NUM_CLASSES,
+            activation          = None,               # raw logits
+            decoder_attention_type = "scse",          # Squeeze-Excitation in decoder
         ).to(self.device)
 
         missing, unexpected = self._segmenter.load_state_dict(state_dict, strict=False)
@@ -201,7 +206,7 @@ class ModelRegistry:
             # Extract version if available
             self._model_version = str(checkpoint.get("version", checkpoint.get("epoch", "1.0")))
 
-            for key in ("model_state_dict", "state_dict", "model"):
+            for key in ("model_state", "model_state_dict", "state_dict", "model"):
                 if key in checkpoint:
                     logger.info("Using '%s' key from checkpoint.", key)
                     return checkpoint[key]

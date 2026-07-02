@@ -18,6 +18,7 @@ import cv2
 import io
 import numpy as np
 import torch
+from torchvision import transforms # REMOVE AFTER DEBUGGING
 import torch.nn.functional as F
 from PIL import Image
 
@@ -116,6 +117,10 @@ class SegmentationService:
         try:
             with torch.no_grad():
                 denoised_tensor = self.registry.denoiser(input_tensor)  # [1,3,H,W]
+                # REMOVE LATER
+                denoised_tensor_export = transforms.ToPILImage()(torch.clamp(denoised_tensor, 0, 1).squeeze(0).cpu())
+                denoised_tensor_export.save(f"results/denoised_debug.png")
+                # REMOVE LATER
         except Exception as exc:
             raise InferenceError(f"Denoiser forward pass failed: {exc}") from exc
 
