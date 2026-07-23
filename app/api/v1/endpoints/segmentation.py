@@ -17,11 +17,13 @@ Design decisions:
 import logging
 from typing import Optional
 
-from fastapi import APIRouter, File, Form, HTTPException, Request, UploadFile, status
+from fastapi import APIRouter, Depends, File, Form, HTTPException, Request, UploadFile, status
 from fastapi.responses import JSONResponse
 
 from app.core.config import settings
+from app.core.dependencies import get_current_user
 from app.core.exceptions import ImageValidationError, InferenceError
+from app.domain.models.user import User
 from app.domain.schemas.segmentation import ErrorResponse, SegmentationResponse
 from app.services.segmentation_service import SegmentationService
 
@@ -55,6 +57,7 @@ async def segment_image(
             "and measure it in pixels. Leave blank to use the server default."
         ),
     ),
+    current_user: User = Depends(get_current_user),   # ← JWT auth required
 ) -> SegmentationResponse:
     """
     Main segmentation endpoint.
@@ -112,7 +115,11 @@ async def segment_image(
     response_model=SegmentationResponse,
     summary="Retrieve a previous segmentation result",
 )
-async def get_result(job_id: str, request: Request) -> SegmentationResponse:
+async def get_result(
+    job_id: str,
+    request: Request,
+    current_user: User = Depends(get_current_user),   # ← JWT auth required
+) -> SegmentationResponse:
     """
     Retrieve a cached segmentation result by job_id.
     Useful for async flows where mobile app polls for completion.

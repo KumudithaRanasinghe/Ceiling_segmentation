@@ -5,6 +5,7 @@ Use a .env file locally. Never hardcode secrets.
 from functools import lru_cache
 from typing import List, Optional
 from pydantic_settings import BaseSettings
+import secrets
 
 
 class Settings(BaseSettings):
@@ -16,6 +17,22 @@ class Settings(BaseSettings):
 
     # ── CORS ───────────────────────────────────────────────────────────
     ALLOWED_ORIGINS: List[str] = ["*"]          # restrict in production
+
+    # ── Authentication & Security ──────────────────────────────────────
+    # Generate a strong secret with: python -c "import secrets; print(secrets.token_hex(32))"
+    # NEVER use the default in production.
+    SECRET_KEY: str = "CHANGE_ME_IN_PRODUCTION_USE_A_LONG_RANDOM_SECRET_KEY"
+    ALGORITHM: str = "HS256"                     # HMAC-SHA256
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 15        # short-lived access tokens
+    REFRESH_TOKEN_EXPIRE_DAYS: int = 7           # long-lived refresh tokens
+
+    # ── Database ───────────────────────────────────────────────────────
+    # SQLite by default (zero infra). Swap to Postgres in production:
+    # DATABASE_URL=postgresql+psycopg2://user:pass@host/dbname
+    DATABASE_URL: str = "sqlite:///./ceiling_ai.db"
+
+    # ── Rate Limiting (auth endpoints) ─────────────────────────────────
+    RATE_LIMIT_REQUESTS_PER_MINUTE: int = 10     # per IP, per 60s window
 
     # ── Model paths ────────────────────────────────────────────────────
     # Point both at your single model file if it does segmentation only.

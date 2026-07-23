@@ -6,6 +6,17 @@ python-multipart==0.0.9          # required for UploadFile / Form
 # ── Configuration ─────────────────────────────────────────────────────────────
 pydantic==2.9.2
 pydantic-settings==2.5.2
+pydantic[email]                  # EmailStr support for auth schemas
+
+# ── Authentication & Security ─────────────────────────────────────────────────
+python-jose[cryptography]==3.3.0  # JWT signing & verification (HS256/RS256)
+passlib[bcrypt]==1.7.4            # bcrypt password hashing (industry standard)
+bcrypt==4.0.1                     # explicit bcrypt backend for passlib
+
+# ── Database (SQLAlchemy ORM) ─────────────────────────────────────────────────
+sqlalchemy==2.0.36                # ORM for user storage
+# Optional — uncomment for Postgres in production:
+# psycopg2-binary==2.9.9
 
 # ── Deep learning ─────────────────────────────────────────────────────────────
 torch==2.4.1
