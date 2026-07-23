@@ -190,3 +190,31 @@ $RECYCLE.BIN/
 uploads/
 tmp/
 temp/
+
+
+# ── DATABASE FILES ────────────────────────────────────────────────────────────
+# SQLite database files — never commit these.
+# They contain real user data (hashed passwords, segmentation history).
+*.db
+*.sqlite
+*.sqlite3
+*.db-shm          # SQLite shared memory file
+*.db-wal          # SQLite write-ahead log
+
+
+# ── SEGMENTATION JOB RESULTS ──────────────────────────────────────────────────
+# Generated mask/overlay images written by the running server.
+# Each job creates results/{job_id}/mask.png and overlay.png.
+results/
+
+
+# ── CELERY / BACKGROUND TASKS (future) ───────────────────────────────────────
+celerybeat-schedule
+celerybeat.pid
+
+
+# ── LOCAL SCRIPTS & SCRATCH ───────────────────────────────────────────────────
+scripts/local_*
+scratch/
+*.local.py
+

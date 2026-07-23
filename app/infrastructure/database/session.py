@@ -20,6 +20,7 @@ from sqlalchemy.orm import Session, sessionmaker
 
 from app.core.config import settings
 from app.domain.models.user import Base
+import app.domain.models.segmentation_job  # noqa: F401 — registers SegmentationJob table with Base
 
 _engine = create_engine(
     settings.DATABASE_URL,

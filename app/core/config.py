@@ -31,8 +31,12 @@ class Settings(BaseSettings):
     # DATABASE_URL=postgresql+psycopg2://user:pass@host/dbname
     DATABASE_URL: str = "sqlite:///./ceiling_ai.db"
 
-    # ── Rate Limiting (auth endpoints) ─────────────────────────────────
-    RATE_LIMIT_REQUESTS_PER_MINUTE: int = 10     # per IP, per 60s window
+    # ── Rate Limiting ──────────────────────────────────────────────────
+    RATE_LIMIT_REQUESTS_PER_MINUTE: int = 10     # /auth/* per IP, 60s window
+    SEGMENT_RATE_LIMIT_PER_MINUTE: int = 5       # /segment/* per USER, 60s window
+
+    # ── Job Storage ────────────────────────────────────────────────────
+    JOB_RESULT_TTL_DAYS: int = 7                 # auto-purge jobs older than N days
 
     # ── Model paths ────────────────────────────────────────────────────
     # Point both at your single model file if it does segmentation only.
