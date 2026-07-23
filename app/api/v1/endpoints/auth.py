@@ -36,13 +36,15 @@ from sqlalchemy.orm import Session
 from app.core.dependencies import get_current_user, require_admin, require_roles
 from app.domain.models.user import User
 from app.domain.repositories.user_repository import UserRepository
-from app.domain.schemas.auth import (
+from app.domain.schemas.requests import (
     ChangePasswordRequest,
     LoginRequest,
-    MessageResponse,
     RefreshRequest,
     RegisterRequest,
-    TokenPair,
+)
+from app.domain.schemas.responses import (
+    MessageResponse,
+    TokenResponse,
     UserResponse,
 )
 from app.infrastructure.database.session import get_db
@@ -94,7 +96,7 @@ def register(
 
 @router.post(
     "/login",
-    response_model=TokenPair,
+    response_model=TokenResponse,
     summary="Login with JSON body (username/email + password)",
     responses={
         400: {"description": "Invalid credentials."},
@@ -103,7 +105,7 @@ def register(
 def login(
     payload: LoginRequest,
     db: Session = Depends(get_db),
-) -> TokenPair:
+) -> TokenResponse:
     """
     Authenticate and receive an access + refresh token pair.
 
@@ -123,7 +125,7 @@ def login(
 
 @router.post(
     "/refresh",
-    response_model=TokenPair,
+    response_model=TokenResponse,
     summary="Rotate refresh token and get a new token pair",
     responses={
         400: {"description": "Invalid, expired, or already-used refresh token."},
@@ -132,7 +134,7 @@ def login(
 def refresh_token(
     payload: RefreshRequest,
     db: Session = Depends(get_db),
-) -> TokenPair:
+) -> TokenResponse:
     """
     Exchange a valid refresh token for a **new** access + refresh token pair.
 

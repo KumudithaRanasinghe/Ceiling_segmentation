@@ -24,13 +24,13 @@ from app.core.security import (
 )
 from app.domain.models.user import User
 from app.domain.repositories.user_repository import UserRepository
-from app.domain.schemas.auth import (
+from app.domain.schemas.requests import (
     ChangePasswordRequest,
     LoginRequest,
     RefreshRequest,
     RegisterRequest,
-    TokenPair,
 )
+from app.domain.schemas.responses import TokenResponse
 
 logger = logging.getLogger(__name__)
 
@@ -46,7 +46,7 @@ class AuthService:
 
     # ── 1. Registration ───────────────────────────────────────────────────────
 
-    def register(self, payload: RegisterRequest) -> tuple[User, TokenPair]:
+    def register(self, payload: RegisterRequest) -> tuple[User, TokenResponse]:
         if UserRepository.email_exists(self._db, payload.email):
             raise ValueError(f"Email '{payload.email}' is already registered.")
         if UserRepository.username_exists(self._db, payload.username):
@@ -66,7 +66,7 @@ class AuthService:
 
     # ── 2. Login ──────────────────────────────────────────────────────────────
 
-    def login(self, payload: LoginRequest) -> TokenPair:
+    def login(self, payload: LoginRequest) -> TokenResponse:
         user = UserRepository.authenticate(
             self._db,
             identifier=payload.username_or_email,
@@ -81,7 +81,7 @@ class AuthService:
 
     # ── 3. Token Refresh (single-use rotation) ────────────────────────────────
 
-    def refresh(self, payload: RefreshRequest) -> TokenPair:
+    def refresh(self, payload: RefreshRequest) -> TokenResponse:
         invalid_err = "Invalid or expired refresh token."
         try:
             claims = decode_refresh_token(payload.refresh_token)
@@ -120,7 +120,7 @@ class AuthService:
 
     # ── Private helpers ───────────────────────────────────────────────────────
 
-    def _issue_token_pair(self, user: User) -> TokenPair:
+    def _issue_token_pair(self, user: User) -> TokenResponse:
         """Create access + refresh tokens and persist the refresh hash."""
         roles: list[str] = json.loads(user.roles) if isinstance(user.roles, str) else user.roles
         access_token = create_access_token(
@@ -132,7 +132,7 @@ class AuthService:
         refresh_hash = _token_hash_ctx.hash(refresh_token)
         UserRepository.save_refresh_token_hash(self._db, user, refresh_hash)
 
-        return TokenPair(
+        return TokenResponse(
             access_token=access_token,
             refresh_token=refresh_token,
             expires_in=settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60,

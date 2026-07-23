@@ -24,7 +24,7 @@ from PIL import Image
 
 from app.core.config import settings
 from app.core.exceptions import InferenceError, ImageValidationError
-from app.domain.schemas.segmentation import (
+from app.domain.schemas.responses import (
     CeilingMaterialType,
     DetectedRegion,
     MaterialEstimate,

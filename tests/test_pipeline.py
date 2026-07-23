@@ -142,7 +142,7 @@ class TestGeometryService:
 
 class TestMaterialEstimator:
     def _make_region(self, region_id, area_m2, confidence=0.9):
-        from app.domain.schemas.segmentation import DetectedRegion
+        from app.domain.schemas.responses import DetectedRegion
         return DetectedRegion(
             region_id=region_id, area_pixels=1000,
             area_m2=area_m2, confidence=confidence,
@@ -156,7 +156,7 @@ class TestMaterialEstimator:
 
     def test_waste_buffer_applied(self):
         from app.services.material_estimator import MaterialEstimator
-        from app.domain.schemas.segmentation import CeilingMaterialType
+        from app.domain.schemas.responses import CeilingMaterialType
         est = MaterialEstimator()
         region  = self._make_region(0, 10.0)
         result  = est.estimate([region], {0: CeilingMaterialType.GYPSUM_BOARD})
@@ -166,7 +166,7 @@ class TestMaterialEstimator:
     def test_unit_count_is_ceiling_division(self):
         import math
         from app.services.material_estimator import MaterialEstimator, PANEL_SIZE_M2
-        from app.domain.schemas.segmentation import CeilingMaterialType
+        from app.domain.schemas.responses import CeilingMaterialType
         est = MaterialEstimator()
         net = 7.5
         region = self._make_region(0, net)
@@ -182,11 +182,34 @@ class TestMaterialEstimator:
 class TestSegmentationEndpoint:
     @pytest.fixture
     def client(self):
-        """TestClient with a stubbed ModelRegistry injected via app.state."""
+        """TestClient with a stubbed ModelRegistry injected via app.state and a mock auth token + DB user."""
         from app.main import app
+        from app.core.security import create_access_token
+        from app.infrastructure.database.session import init_db, get_db
+        from app.domain.repositories.user_repository import UserRepository
+
+        init_db()
+        db = next(get_db())
+        user = UserRepository.get_by_id(db, "test-user-id")
+        if not user:
+            UserRepository.create(
+                db,
+                email="testuser@example.com",
+                username="testuser",
+                full_name=None,
+                plain_password="Password123!",
+            )
+            # Ensure ID is test-user-id
+            u = UserRepository.get_by_username(db, "testuser")
+            u.id = "test-user-id"
+            db.commit()
+        db.close()
+
         registry = make_stub_registry()
         app.state.model_registry = registry
+        token = create_access_token(subject="test-user-id", roles=["user"])
         with TestClient(app, raise_server_exceptions=True) as c:
+            c.headers.update({"Authorization": f"Bearer {token}"})
             yield c
 
     def test_health_live(self, client):

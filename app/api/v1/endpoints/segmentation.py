@@ -33,7 +33,12 @@ from app.core.dependencies import get_current_user
 from app.core.exceptions import ImageValidationError, InferenceError
 from app.domain.models.user import User
 from app.domain.repositories.job_repository import JobRepository
-from app.domain.schemas.segmentation import ErrorResponse, SegmentationResponse
+from app.domain.schemas.requests import SegmentationRequest
+from app.domain.schemas.responses import (
+    ErrorResponse,
+    SegmentationJobSummary,
+    SegmentationResponse,
+)
 from app.infrastructure.database.session import get_db
 from app.services.segmentation_service import SegmentationService
 

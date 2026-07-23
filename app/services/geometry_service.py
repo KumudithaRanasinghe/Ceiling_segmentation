@@ -15,7 +15,7 @@ from typing import Dict, List, Tuple
 import cv2
 import numpy as np
 
-from app.domain.schemas.segmentation import CeilingMaterialType, DetectedRegion, RoofType
+from app.domain.schemas.responses import CeilingMaterialType, DetectedRegion, RoofType
 
 logger = logging.getLogger(__name__)
 

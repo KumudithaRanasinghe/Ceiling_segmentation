@@ -15,7 +15,7 @@ from sqlalchemy.orm import Session
 
 from app.core.config import settings
 from app.domain.models.segmentation_job import SegmentationJob
-from app.domain.schemas.segmentation import SegmentationResponse
+from app.domain.schemas.responses import SegmentationResponse
 
 
 class JobRepository:

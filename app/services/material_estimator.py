@@ -15,7 +15,7 @@ from collections import defaultdict
 from typing import Dict, List
 
 from app.core.config import settings
-from app.domain.schemas.segmentation import (
+from app.domain.schemas.responses import (
     CeilingMaterialType,
     DetectedRegion,
     MaterialEstimate,
