@@ -20,7 +20,7 @@ secrets/
 # ── MODEL WEIGHTS ─────────────────────────────────────────────────────────────
 # Binary weight files are large (100 MB – 2 GB) and change often.
 # Store them in Google Drive, S3, Hugging Face Hub, or DVC — not Git.
-models/
+
 *.pt
 *.pth
 *.onnx
