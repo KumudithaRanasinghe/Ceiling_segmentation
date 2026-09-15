@@ -12,6 +12,14 @@ Usage:
         SegmentationRequest,
     )
 """
+from app.domain.schemas.requests.admin_requests import (
+    AdminResetPasswordRequest,
+    AdminUpdateUserStatusRequest,
+    MaterialPricingUpdateRequest,
+    PurgeJobsRequest,
+    SystemSettingUpdateRequest,
+    UpdateUserRoleRequest,
+)
 from app.domain.schemas.requests.auth_requests import (
     ChangePasswordRequest,
     LoginRequest,
@@ -26,4 +34,10 @@ __all__ = [
     "RefreshRequest",
     "ChangePasswordRequest",
     "SegmentationRequest",
+    "UpdateUserRoleRequest",
+    "AdminUpdateUserStatusRequest",
+    "AdminResetPasswordRequest",
+    "SystemSettingUpdateRequest",
+    "MaterialPricingUpdateRequest",
+    "PurgeJobsRequest",
 ]

@@ -190,6 +190,9 @@ $RECYCLE.BIN/
 uploads/
 tmp/
 temp/
+thesis
+graphs_and_diagrams
+
 
 
 # ── DATABASE FILES ────────────────────────────────────────────────────────────
@@ -200,6 +203,7 @@ temp/
 *.sqlite3
 *.db-shm          # SQLite shared memory file
 *.db-wal          # SQLite write-ahead log
+ceiling_ai.db
 
 
 # ── SEGMENTATION JOB RESULTS ──────────────────────────────────────────────────

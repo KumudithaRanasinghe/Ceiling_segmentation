@@ -30,7 +30,8 @@ from __future__ import annotations
 import logging
 from typing import List
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
+from app.domain.repositories.audit_repository import AuditRepository
 from sqlalchemy.orm import Session
 
 from app.core.dependencies import get_current_user, require_admin, require_roles
@@ -104,20 +105,49 @@ def register(
 )
 def login(
     payload: LoginRequest,
+    request: Request,
     db: Session = Depends(get_db),
 ) -> TokenResponse:
     """
     Authenticate and receive an access + refresh token pair.
 
-    Use the `access_token` in subsequent requests:
-    ```
+    Use the access_token in subsequent requests:
     Authorization: Bearer <access_token>
-    ```
     """
     svc = AuthService(db)
     try:
-        return svc.login(payload)
+        token_resp = svc.login(payload)
+        # Audit log admin logins
+        user = UserRepository.get_by_username_or_email(db, payload.username_or_email)
+        if user and ("admin" in user.roles or user.is_superuser):
+            forwarded = request.headers.get("X-Forwarded-For")
+            client_ip = forwarded.split(",")[0].strip() if forwarded else (request.client.host if request.client else None)
+            AuditRepository.log_event(
+                db,
+                actor_id=user.id,
+                actor_email=user.email,
+                action="ADMIN_LOGIN_SUCCESS",
+                resource_type="auth",
+                resource_id=user.id,
+                details={"username": user.username, "user_agent": request.headers.get("user-agent", "unknown")},
+                ip_address=client_ip,
+            )
+        return token_resp
     except ValueError as exc:
+        user = UserRepository.get_by_username_or_email(db, payload.username_or_email)
+        if user and ("admin" in user.roles or user.is_superuser):
+            forwarded = request.headers.get("X-Forwarded-For")
+            client_ip = forwarded.split(",")[0].strip() if forwarded else (request.client.host if request.client else None)
+            AuditRepository.log_event(
+                db,
+                actor_id=user.id,
+                actor_email=user.email,
+                action="ADMIN_LOGIN_FAILED",
+                resource_type="auth",
+                resource_id=user.id,
+                details={"username": user.username, "error": str(exc)},
+                ip_address=client_ip,
+            )
         raise _bad_request(exc)
 
 
@@ -156,6 +186,7 @@ def refresh_token(
     summary="Logout (revoke refresh token session)",
 )
 def logout(
+    request: Request,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ) -> MessageResponse:
@@ -166,6 +197,19 @@ def logout(
     For immediate access token revocation, add a token blocklist (e.g. in Redis).
     """
     AuthService(db).logout(current_user)
+    if "admin" in current_user.roles or current_user.is_superuser:
+        forwarded = request.headers.get("X-Forwarded-For")
+        client_ip = forwarded.split(",")[0].strip() if forwarded else (request.client.host if request.client else None)
+        AuditRepository.log_event(
+            db,
+            actor_id=current_user.id,
+            actor_email=current_user.email,
+            action="ADMIN_LOGOUT",
+            resource_type="auth",
+            resource_id=current_user.id,
+            details={"username": current_user.username},
+            ip_address=client_ip,
+        )
     return MessageResponse(message="Successfully logged out.")
 
 

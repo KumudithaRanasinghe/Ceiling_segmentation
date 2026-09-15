@@ -13,6 +13,25 @@ Usage:
         SegmentationJobSummary,
     )
 """
+from app.domain.schemas.responses.admin_responses import (
+    AdminJobListItem,
+    AdminJobListResponse,
+    AdminSummaryKPIResponse,
+    AdminUserListItem,
+    AdminUserListResponse,
+    AuditLogItem,
+    AuditLogListResponse,
+    BucketItem,
+    DistributionResponse,
+    MaterialAnalyticsResponse,
+    MaterialPricingConfigResponse,
+    MaterialStatItem,
+    ModelPerformanceItem,
+    ModelPerformanceResponse,
+    SystemHealthResponse,
+    TimeseriesAnalyticsResponse,
+    TimeseriesPoint,
+)
 from app.domain.schemas.responses.auth_responses import (
     ErrorResponse,
     MessageResponse,
@@ -41,4 +60,22 @@ __all__ = [
     "MaterialEstimate",
     "SegmentationResponse",
     "SegmentationJobSummary",
+    # Admin
+    "AdminSummaryKPIResponse",
+    "TimeseriesPoint",
+    "TimeseriesAnalyticsResponse",
+    "BucketItem",
+    "DistributionResponse",
+    "MaterialStatItem",
+    "MaterialAnalyticsResponse",
+    "ModelPerformanceItem",
+    "ModelPerformanceResponse",
+    "AdminUserListItem",
+    "AdminUserListResponse",
+    "AdminJobListItem",
+    "AdminJobListResponse",
+    "AuditLogItem",
+    "AuditLogListResponse",
+    "SystemHealthResponse",
+    "MaterialPricingConfigResponse",
 ]

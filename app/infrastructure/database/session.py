@@ -20,18 +20,28 @@ from sqlalchemy.orm import Session, sessionmaker
 
 from app.core.config import settings
 from app.domain.models.user import Base
-import app.domain.models.segmentation_job  # noqa: F401 — registers SegmentationJob table with Base
+import app.domain.models.segmentation_job  # noqa: F401
+import app.domain.models.audit_log          # noqa: F401
+import app.domain.models.system_setting    # noqa: F401
+
+_engine_kwargs = {
+    "echo": settings.DEBUG,
+}
+
+if settings.DATABASE_URL.startswith("sqlite"):
+    _engine_kwargs["connect_args"] = {"check_same_thread": False}
+elif "mysql" in settings.DATABASE_URL:
+    # MySQL production-grade connection pooling
+    _engine_kwargs.update({
+        "pool_pre_ping": True,
+        "pool_recycle": 3600,
+        "pool_size": 10,
+        "max_overflow": 20,
+    })
 
 _engine = create_engine(
     settings.DATABASE_URL,
-    # SQLite requires this to allow the same connection across threads
-    # (FastAPI runs handlers in a thread pool).
-    connect_args=(
-        {"check_same_thread": False}
-        if settings.DATABASE_URL.startswith("sqlite")
-        else {}
-    ),
-    echo=settings.DEBUG,   # log SQL statements in DEBUG mode only
+    **_engine_kwargs,
 )
 
 _SessionLocal = sessionmaker(

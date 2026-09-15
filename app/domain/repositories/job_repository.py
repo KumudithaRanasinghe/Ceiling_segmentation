@@ -2,15 +2,16 @@
 SegmentationJob Repository
 ===========================
 Pure data-access layer for SegmentationJob entities.
-No business logic here — only DB reads and writes.
+Provides optimized SQL queries for both user-level and admin-level telemetry & management.
 """
 from __future__ import annotations
 
 import json
 import uuid
 from datetime import datetime, timedelta, timezone
-from typing import List, Optional
+from typing import Any, Dict, List, Optional, Tuple
 
+from sqlalchemy import desc, func
 from sqlalchemy.orm import Session
 
 from app.core.config import settings
@@ -58,6 +59,63 @@ class JobRepository:
             .all()
         )
 
+    @staticmethod
+    def list_admin(
+        db: Session,
+        page: int = 1,
+        page_size: int = 20,
+        status: Optional[str] = None,
+        user_id: Optional[str] = None,
+        model_version: Optional[str] = None,
+        start_date: Optional[datetime] = None,
+        end_date: Optional[datetime] = None,
+    ) -> Tuple[List[SegmentationJob], int]:
+        """Admin multi-criteria filter & pagination across all users."""
+        query = db.query(SegmentationJob)
+
+        if status:
+            query = query.filter(SegmentationJob.status == status)
+        if user_id:
+            query = query.filter(SegmentationJob.user_id == user_id)
+        if model_version:
+            query = query.filter(SegmentationJob.model_version == model_version)
+        if start_date:
+            query = query.filter(SegmentationJob.created_at >= start_date)
+        if end_date:
+            query = query.filter(SegmentationJob.created_at <= end_date)
+
+        total = query.count()
+        offset = (page - 1) * page_size
+        jobs = query.order_by(desc(SegmentationJob.created_at)).offset(offset).limit(page_size).all()
+        return jobs, total
+
+    @staticmethod
+    def get_jobs_in_timerange(
+        db: Session,
+        start_date: datetime,
+        end_date: datetime,
+    ) -> List[SegmentationJob]:
+        """Fetch jobs between start_date and end_date for analytics aggregations."""
+        return (
+            db.query(SegmentationJob)
+            .filter(
+                SegmentationJob.created_at >= start_date,
+                SegmentationJob.created_at <= end_date,
+            )
+            .order_by(SegmentationJob.created_at.asc())
+            .all()
+        )
+
+    @staticmethod
+    def count_by_status(db: Session) -> Dict[str, int]:
+        """Return counts grouped by status."""
+        rows = (
+            db.query(SegmentationJob.status, func.count(SegmentationJob.id))
+            .group_by(SegmentationJob.status)
+            .all()
+        )
+        return {row[0]: row[1] for row in rows}
+
     # ── Writes ────────────────────────────────────────────────────────────────
 
     @staticmethod
@@ -71,12 +129,7 @@ class JobRepository:
         content_type: Optional[str] = None,
         pixels_per_meter: Optional[float] = None,
     ) -> SegmentationJob:
-        """
-        Persist a completed segmentation result.
-
-        The job_id is taken from result.job_id so the client-facing ID
-        and the DB primary key are always the same value.
-        """
+        """Persist a completed segmentation result."""
         now = datetime.now(tz=timezone.utc)
         ttl_days = getattr(settings, "JOB_RESULT_TTL_DAYS", 7)
         expires_at = now + timedelta(days=ttl_days)
@@ -102,6 +155,12 @@ class JobRepository:
         return job
 
     @staticmethod
+    def delete_job(db: Session, job: SegmentationJob) -> None:
+        """Hard delete a single job."""
+        db.delete(job)
+        db.commit()
+
+    @staticmethod
     def result_from_job(job: SegmentationJob) -> Optional[SegmentationResponse]:
         """Deserialize a stored job's JSON blob back into a SegmentationResponse."""
         if job.full_result_json is None:
@@ -110,16 +169,26 @@ class JobRepository:
 
     @staticmethod
     def purge_expired(db: Session) -> int:
-        """
-        Delete all jobs where expires_at < now().
-        Returns the count of deleted rows.
-        Call this from a nightly cron / APScheduler task.
-        """
+        """Delete all jobs where expires_at < now()."""
         now = datetime.now(tz=timezone.utc)
         count = (
             db.query(SegmentationJob)
             .filter(SegmentationJob.expires_at < now)
             .delete(synchronize_session=False)
         )
+        db.commit()
+        return count
+
+    @staticmethod
+    def purge_older_than(
+        db: Session,
+        cutoff: datetime,
+        include_failed: bool = True,
+    ) -> int:
+        """Admin triggered purge of older jobs."""
+        query = db.query(SegmentationJob).filter(SegmentationJob.created_at < cutoff)
+        if not include_failed:
+            query = query.filter(SegmentationJob.status != "failed")
+        count = query.delete(synchronize_session=False)
         db.commit()
         return count

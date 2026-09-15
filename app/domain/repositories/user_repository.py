@@ -2,14 +2,15 @@
 User Repository
 ================
 Pure data-access layer for the User entity.
-No business logic — only DB read/write.
+Provides secure database reads, writes, and admin IAM queries.
 """
 from __future__ import annotations
 
 import json
 import uuid
-from typing import Optional
+from typing import List, Optional, Tuple
 
+from sqlalchemy import desc, func, or_
 from sqlalchemy.orm import Session
 
 from app.core.security import hash_password, verify_password
@@ -47,6 +48,41 @@ class UserRepository:
     @staticmethod
     def username_exists(db: Session, username: str) -> bool:
         return UserRepository.get_by_username(db, username) is not None
+
+    @staticmethod
+    def count_total(db: Session) -> int:
+        return db.query(func.count(User.id)).scalar() or 0
+
+    @staticmethod
+    def list_users_admin(
+        db: Session,
+        page: int = 1,
+        page_size: int = 20,
+        search: Optional[str] = None,
+        is_active: Optional[bool] = None,
+        role: Optional[str] = None,
+    ) -> Tuple[List[User], int]:
+        """Admin user directory query with search, filter, and pagination."""
+        query = db.query(User)
+
+        if search:
+            search_pattern = f"%{search.lower()}%"
+            query = query.filter(
+                or_(
+                    User.email.ilike(search_pattern),
+                    User.username.ilike(search_pattern),
+                    User.full_name.ilike(search_pattern),
+                )
+            )
+        if is_active is not None:
+            query = query.filter(User.is_active == is_active)
+        if role:
+            query = query.filter(User.roles.like(f'%"{role}"%'))
+
+        total = query.count()
+        offset = (page - 1) * page_size
+        users = query.order_by(desc(User.created_at)).offset(offset).limit(page_size).all()
+        return users, total
 
     # ── Writes ────────────────────────────────────────────────────────────────
 
@@ -92,10 +128,20 @@ class UserRepository:
         db.commit()
 
     @staticmethod
-    def deactivate(db: Session, user: User) -> None:
-        user.is_active = False
-        user.refresh_token_hash = None
+    def update_roles(db: Session, user: User, roles: list[str]) -> None:
+        user.roles = json.dumps(roles)
         db.commit()
+
+    @staticmethod
+    def set_active_status(db: Session, user: User, is_active: bool) -> None:
+        user.is_active = is_active
+        if not is_active:
+            user.refresh_token_hash = None
+        db.commit()
+
+    @staticmethod
+    def deactivate(db: Session, user: User) -> None:
+        UserRepository.set_active_status(db, user, is_active=False)
 
     # ── Helpers ───────────────────────────────────────────────────────────────
 
