@@ -38,6 +38,15 @@ elif "mysql" in settings.DATABASE_URL:
         "pool_size": 10,
         "max_overflow": 20,
     })
+elif "postgresql" in settings.DATABASE_URL:
+    # Postgres (Neon / Supabase) — pool_pre_ping keeps connections alive
+    # across Neon's serverless idle disconnects
+    _engine_kwargs.update({
+        "pool_pre_ping": True,
+        "pool_recycle": 1800,   # Neon idles out at ~5 min; recycle at 30 min
+        "pool_size": 5,
+        "max_overflow": 10,
+    })
 
 _engine = create_engine(
     settings.DATABASE_URL,
