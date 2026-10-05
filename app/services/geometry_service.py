@@ -10,11 +10,12 @@ Pipeline per class:
   → area (px²) → area (m²) → DetectedRegion
 """
 import logging
-from typing import Dict, List, Tuple
+from typing import Dict, List, Optional, Tuple
 
 import cv2
 import numpy as np
 
+from app.core.config import settings
 from app.domain.schemas.responses import CeilingMaterialType, DetectedRegion, RoofType
 
 logger = logging.getLogger(__name__)
@@ -45,7 +46,8 @@ class GeometryService:
         self,
         mask_np: np.ndarray,           # [H, W] uint8 — class index per pixel
         conf_map: np.ndarray,          # [H, W] float32 — max softmax conf per pixel
-        pixels_per_meter: float,       # calibration: px in 1 m
+        pixels_per_meter: Optional[float] = None,  # calibration: px in 1 m in ORIGINAL image space (None = default)
+        original_size: Tuple[int, int] = (512, 512),  # (width, height) of original image
         min_area_px: int = 500,        # reject regions smaller than this
     ) -> Tuple[List[DetectedRegion], RoofType, Dict[int, CeilingMaterialType]]:
         """
@@ -53,8 +55,35 @@ class GeometryService:
             regions:   DetectedRegion list (sorted area desc)
             roof_type: inferred RoofType
             class_map: {region_id: CeilingMaterialType} for the estimator
+
+        Geometric scale calibration:
+            1. If `pixels_per_meter` is provided by user (calibrated on original image):
+               scale_factor = min(mask_w / orig_w, mask_h / orig_h)
+               ppm_mask = pixels_per_meter * scale_factor
+            2. If uncalibrated (`pixels_per_meter` is None):
+               Uses `settings.DEFAULT_PIXELS_PER_METER` (34.0 px/m in 512x512 space),
+               representing a standard residential building span (~12-16m across ~400-450px).
+               This ensures realistic room areas (10–45 m²) and house areas (60–150 m²).
         """
-        ppm2   = pixels_per_meter ** 2   # px² per m²
+        mask_h, mask_w = mask_np.shape
+        orig_w, orig_h = original_size
+
+        scale_w = mask_w / orig_w if orig_w > 0 else 1.0
+        scale_h = mask_h / orig_h if orig_h > 0 else 1.0
+        scale_factor = min(scale_w, scale_h)
+
+        if pixels_per_meter is not None and pixels_per_meter > 0:
+            ppm_mask = pixels_per_meter * scale_factor
+            ppm_orig = pixels_per_meter
+        else:
+            ppm_mask = settings.DEFAULT_PIXELS_PER_METER
+            ppm_orig = round(ppm_mask / scale_factor, 1) if scale_factor > 0 else ppm_mask
+
+        ppm2   = ppm_mask ** 2   # px² per m²
+        logger.info(
+            "Geometry calibration: ppm_orig=%.2f scale=%.4f ppm_mask=%.2f ppm2=%.2f",
+            ppm_orig, scale_factor, ppm_mask, ppm2,
+        )
         regions: List[DetectedRegion]          = []
         class_map: Dict[int, CeilingMaterialType] = {}
         region_id = 0
@@ -100,11 +129,20 @@ class GeometryService:
                 area_m2 = area_px / ppm2
 
                 # Sanity gate: reject architecturally impossible measurements
+                # Upper limit: largest buildings are ~500,000 m² floor area;
+                # a single ceiling region >50,000 m² is implausible.
+                # Lower limit: anything below 0.01 m² is sub-10cm noise.
                 if area_m2 > 50_000:
                     logger.warning(
                         "Region %d area %.1f m² exceeds physical limit — "
-                        "check pixels_per_meter calibration (current: %.1f).",
-                        region_id, area_m2, pixels_per_meter,
+                        "check pixels_per_meter calibration (current ppm_orig=%.1f, ppm_mask=%.2f).",
+                        region_id, area_m2, pixels_per_meter, ppm_mask,
+                    )
+                    continue
+                if area_m2 < 0.01:
+                    logger.debug(
+                        "Region %d area %.4f m² is sub-10cm noise — skipping.",
+                        region_id, area_m2,
                     )
                     continue
 

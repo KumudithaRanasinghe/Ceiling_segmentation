@@ -44,6 +44,9 @@ class Settings(BaseSettings):
     ENCODER: str = "efficientnet-b4" # "efficientnet-b4" or "resnet50"
     DENOISER_MODEL_PATH: Optional[str] = None
     SEGMENTER_MODEL_PATH: str = "models/best_model_optimized.pth"
+    # V2 model — binary inside-floor vs background segmentation
+    V2_SEGMENTER_MODEL_PATH: Optional[str] = None
+    V2_NUM_CLASSES: int = 4                      # must match V2 training checkpoint
     DEVICE: str = "cpu"                          # "cuda" or "cpu"
 
     # ── Inference ──────────────────────────────────────────────────────
@@ -57,7 +60,12 @@ class Settings(BaseSettings):
     ALLOWED_MIME_TYPES: List[str] = ["image/jpeg", "image/png", "image/webp"]
 
     # ── Scale calibration ─────────────────────────────────────────────
-    DEFAULT_PIXELS_PER_METER: float = 100.0
+    # Default scale calibration for architectural floor plans in normalized 512x512 space:
+    # A standard residential house spans ~12m–16m across ~400–450 pixels of the 512px canvas.
+    # Therefore, 1 metre ≈ 34 pixels in 512x512 model mask space (34^2 ≈ 1,156 px²/m²).
+    # This ensures uncalibrated house uploads yield realistic house areas (70–150 m²)
+    # and realistic room areas (12–45 m²) rather than sub-room tiny fractions.
+    DEFAULT_PIXELS_PER_METER: float = 34.0
 
     # ── Material overhead factor (waste + overlap) ─────────────────────
     MATERIAL_OVERHEAD_FACTOR: float = 1.10      # 10% waste buffer
