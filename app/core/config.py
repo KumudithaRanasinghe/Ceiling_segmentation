@@ -43,9 +43,9 @@ class Settings(BaseSettings):
     # Rename spaces to underscores: "segmentation optimized.pth" → "segmentation_optimized.pth"
     ENCODER: str = "efficientnet-b4" # "efficientnet-b4" or "resnet50"
     DENOISER_MODEL_PATH: Optional[str] = None
-    SEGMENTER_MODEL_PATH: str = "models/best_model_optimized.pth"
+    SEGMENTER_MODEL_PATH: str = "models/V1/best_model_optimized.pth"
     # V2 model — binary inside-floor vs background segmentation
-    V2_SEGMENTER_MODEL_PATH: Optional[str] = None
+    V2_SEGMENTER_MODEL_PATH: Optional[str] = "models/V2/best_model_optimized_v2.pth"
     V2_NUM_CLASSES: int = 4                      # must match V2 training checkpoint
     DEVICE: str = "cpu"                          # "cuda" or "cpu"
 
