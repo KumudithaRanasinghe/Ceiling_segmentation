@@ -33,7 +33,7 @@ Go to: https://huggingface.co/new-space
 ### 3. Add the Space remote
 ```bash
 cd /home/kumuditha/Desktop/Ceiling_segmentation
-git remote add space https://huggingface.co/spaces/YOUR_HF_USERNAME/ceiling-ai
+git remote add space https://huggingface.co/spaces/L9Shadow/ceiling-ai
 # e.g: git remote add space https://huggingface.co/spaces/kumuditha/ceiling-ai
 ```
 
@@ -65,9 +65,9 @@ This will take a while — git LFS uploads both .pth files.
 
 ## Verify after deployment
 ```
-https://YOUR_HF_USERNAME-ceiling-ai.hf.space/api/v1/docs
-https://YOUR_HF_USERNAME-ceiling-ai.hf.space/api/v1/health/live
-https://YOUR_HF_USERNAME-ceiling-ai.hf.space/api/v1/health/ready
+https://l9shadow-ceiling-ai.hf.space/api/v1/docs
+https://l9shadow-ceiling-ai.hf.space/api/v1/health/live
+https://l9shadow-ceiling-ai.hf.space/api/v1/health/ready
 ```
 Watch Logs tab for:
   "V1 segmenter ready in ... ms on cpu"
