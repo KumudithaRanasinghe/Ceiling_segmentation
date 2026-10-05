@@ -15,7 +15,7 @@
 #     opencv-python-headless==4.10.0.84 Pillow==10.4.0 numpy
 #
 # ── CELL 2: Clone your repo ──────────────────────────────────────────
-# !git clone https://github.com/KumudithaRanasinghe/Ceiling_segmentation.git
+# !git clone -b test/v1 https://github.com/KumudithaRanasinghe/Ceiling_segmentation.git
 # %cd Ceiling_segmentation
 # Upload your .pth files to:  models/V1/best_model_optimized.pth
 #                              models/V2/best_model_optimized_v2.pth
