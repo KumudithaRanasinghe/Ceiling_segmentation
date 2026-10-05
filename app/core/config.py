@@ -46,7 +46,7 @@ class Settings(BaseSettings):
     SEGMENTER_MODEL_PATH: str = "models/V1/best_model_optimized.pth"
     # V2 model — binary inside-floor vs background segmentation
     V2_SEGMENTER_MODEL_PATH: Optional[str] = "models/V2/best_model_optimized_v2.pth"
-    V2_NUM_CLASSES: int = 4                      # must match V2 training checkpoint
+    V2_NUM_CLASSES: int = 2                      # V2 is binary: background + inside-floor
     DEVICE: str = "cpu"                          # "cuda" or "cpu"
 
     # ── Inference ──────────────────────────────────────────────────────

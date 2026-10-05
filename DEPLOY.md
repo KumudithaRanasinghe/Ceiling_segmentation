@@ -59,7 +59,7 @@ This will take a while — git LFS uploads both .pth files.
 | DATABASE_URL | postgresql+psycopg2://neondb_owner:npg_QEkGUleMj3q0@ep-delicate-firefly-azwlyq0j-pooler.c-3.ap-southeast-1.aws.neon.tech/neondb?sslmode=require | Secret |
 | SEGMENTER_MODEL_PATH | models/V1/best_model_optimized.pth | Variable |
 | V2_SEGMENTER_MODEL_PATH | models/V2/best_model_optimized_v2.pth | Variable |
-| V2_NUM_CLASSES | 4 | Variable |
+| V2_NUM_CLASSES | 2 | Variable |
 | DEVICE | cpu | Variable |
 | ALLOWED_ORIGINS | ["*"] | Variable |
 
